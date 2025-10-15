@@ -22,6 +22,7 @@ def run_demo(commands: Iterable[str] | None = None) -> List[dict]:
     env = demo_world()
     learner = QLearningAgent(env)
     learner.learn()
+    env.reset()
 
     controller = AutonomousController(env, learner, AgentState())
     results = []
@@ -73,6 +74,13 @@ def format_results_korean(results: Sequence[dict]) -> str:
         else:
             plan_str = "경로 없음"
         lines.append(f"- 계획 경로: {plan_str}")
+        planner = entry.get("planner")
+        if planner:
+            lines.append(f"- 계획 생성기: {planner}")
+        policy_action = entry.get("policy_action")
+        if policy_action:
+            action_text = describe_action(tuple(policy_action))
+            lines.append(f"- 학습된 정책 제안: {action_text}")
         action_desc = describe_action(tuple(entry.get("action", (0, 0))))
         lines.append(f"- 실행 행동: {action_desc}")
         lines.append(f"- 배터리 잔량: {entry.get('battery', 0.0)}")

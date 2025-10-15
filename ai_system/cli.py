@@ -14,6 +14,7 @@ def run_cli(intro: bool = True) -> None:
     env = demo_world()
     learner = QLearningAgent(env)
     learner.learn()
+    env.reset()
 
     controller = AutonomousController(env, learner, AgentState())
 
@@ -40,7 +41,6 @@ def run_cli(intro: bool = True) -> None:
 
         command = parse_command(text)
         decision = controller.decide(command)
-        env.step(decision["action"])
 
         features = decision["features"]
         plan = " -> ".join(str(tuple(step)) for step in decision["plan"]) or "경로 없음"
@@ -49,13 +49,21 @@ def run_cli(intro: bool = True) -> None:
         print(f"현재 위치: {tuple(features['agent_position'])} / 목표: {tuple(features['goal_position'])}")
         print(f"추론 결과: {', '.join(decision['inferences'])}")
         print(f"계획 경로: {plan}")
+        planner = decision.get("planner")
+        if planner:
+            print(f"계획 생성기: {planner}")
+        policy_action = decision.get("policy_action")
+        if policy_action:
+            print(f"학습된 정책 제안: {describe_action(tuple(policy_action))}")
         print(f"실행 행동: {describe_action(tuple(decision['action']))}")
         print(f"배터리 잔량: {decision['battery']}")
 
-        if env.agent == env.config.goal:
+        _, _, _, info = env.step(decision["action"])
+
+        if info.get("at_goal"):
             print("✔ 목표 지점에 도달했습니다! 환경을 초기화합니다.")
             env.reset()
-        elif env.agent == env.config.charger:
+        elif info.get("at_charger"):
             print("🔋 충전소에 도착했습니다. 배터리를 회복합니다.")
 
 

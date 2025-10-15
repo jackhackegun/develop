@@ -42,13 +42,19 @@ class GridWorld:
         self.agent = self.config.start
         return self.agent
 
-    def step(self, action: Tuple[int, int]) -> Tuple[Tuple[int, int], float, bool, Dict[str, bool]]:
-        nx = self.agent[0] + action[0]
-        ny = self.agent[1] + action[1]
+    def transition(self, state: Tuple[int, int], action: Tuple[int, int]) -> Tuple[int, int]:
+        """Predict the next state without mutating the environment."""
+
+        nx = state[0] + action[0]
+        ny = state[1] + action[1]
         if not (0 <= nx < self.config.width and 0 <= ny < self.config.height):
-            nx, ny = self.agent  # hits a wall
+            return state  # hits a wall
         if (nx, ny) in self.config.obstacles:
-            nx, ny = self.agent  # blocked by obstacle
+            return state  # blocked by obstacle
+        return (nx, ny)
+
+    def step(self, action: Tuple[int, int]) -> Tuple[Tuple[int, int], float, bool, Dict[str, bool]]:
+        nx, ny = self.transition(self.agent, action)
         self.agent = (nx, ny)
         reward = -0.04  # mild step penalty
         done = False
