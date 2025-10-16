@@ -39,6 +39,16 @@ def run_cli(intro: bool = True) -> None:
             print("AI 세션을 종료합니다. 이용해주셔서 감사합니다!")
             break
 
+        if "깃허브" in text or "github" in normalized:
+            from .github import publish_to_github
+
+            wants_status = any(keyword in text for keyword in ("상태", "확인", "체크"))
+            result = publish_to_github(dry_run=wants_status)
+            print(result)
+            if wants_status:
+                print("상태만 확인했습니다. 실제로 올리려면 '깃허브에 올려줘'와 같이 다시 요청하세요.")
+            continue
+
         command = parse_command(text)
         decision = controller.decide(command)
 
